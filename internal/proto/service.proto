@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package protobuf;
+option go_package = "/gen";
+import "google/api/annotations.proto";
+
+service LinksCreator{
+  rpc GetLink(GetLinkRequest) returns (GetLinkResponse){
+    option (google.api.http) = {
+      get: "/api/v1/links/get";
+    };
+  }
+  rpc SaveLink(SaveLinkRequest) returns (SaveLinkResponse){
+    option (google.api.http) = {
+      post: "/api/v1/links/save";
+    };
+  }
+}
+message SaveLinkRequest{
+  string url = 1;
+}
+message SaveLinkResponse{
+  string short = 1;
+}
+message GetLinkRequest{
+  string short = 1;
+}
+message GetLinkResponse{
+  string url = 1;
+}
