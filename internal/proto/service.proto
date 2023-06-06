@@ -13,6 +13,7 @@ service LinksCreator{
   rpc SaveLink(SaveLinkRequest) returns (SaveLinkResponse){
     option (google.api.http) = {
       post: "/api/v1/links/save";
+      body: "*"
     };
   }
 }
