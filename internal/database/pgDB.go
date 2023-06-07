@@ -2,8 +2,10 @@ package database
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	internalErrors "ozonIntern/internal/errors"
 
 	"github.com/pkg/errors"
 )
@@ -29,7 +31,7 @@ func (db *PgDatabase) SaveLink(ctx context.Context, url, link string) error {
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok {
 			if pgErr.Code == "23505" {
-				return ErrAlreadyExists
+				return internalErrors.ErrAlreadyExists
 			} else {
 				return errors.Wrap(err, "failed to save the link")
 			}
@@ -46,6 +48,9 @@ func (db *PgDatabase) GetURL(ctx context.Context, link string) (string, error) {
 	var url string
 	err := db.pool.QueryRow(ctx, query, link).Scan(&url)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", internalErrors.ErrUrlNotFound
+		}
 		return "", errors.Wrap(err, "failed to get the url")
 	}
 

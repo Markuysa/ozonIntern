@@ -14,9 +14,9 @@ import (
 	"net/http"
 	"ozonIntern/internal/database"
 	logger2 "ozonIntern/internal/logger"
-	"ozonIntern/internal/proto/gen"
 	"ozonIntern/internal/server"
 	"ozonIntern/internal/service"
+	gen2 "ozonIntern/pkg/proto/gen"
 )
 
 func main() {
@@ -46,7 +46,7 @@ func serveHTTP(logger *zap.Logger) {
 		"localhost:9000",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
-	err = gen.RegisterLinksCreatorHandler(
+	err = gen2.RegisterLinksCreatorHandler(
 		ctx,
 		mux,
 		grpcLinksConn,
@@ -60,7 +60,7 @@ func serveHTTP(logger *zap.Logger) {
 func serveGRPC(linkService service.LinksProcessor, logger *zap.Logger) {
 	grpcServer := grpc.NewServer()
 	linkServer := server.NewServer(linkService, logger)
-	gen.RegisterLinksCreatorServer(grpcServer, linkServer)
+	gen2.RegisterLinksCreatorServer(grpcServer, linkServer)
 	reflection.Register(grpcServer)
 
 	listener, err := net.Listen("tcp", ":9000")

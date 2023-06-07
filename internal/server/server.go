@@ -7,34 +7,37 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	internalErrors "ozonIntern/internal/errors"
-	"ozonIntern/internal/proto/gen"
 	"ozonIntern/internal/service"
+	gen2 "ozonIntern/pkg/proto/gen"
 )
 
 type Server struct {
 	linkService service.LinksProcessor
 	logger      *zap.Logger
-	gen.UnimplementedLinksCreatorServer
+	gen2.UnimplementedLinksCreatorServer
 }
 
 func NewServer(linkService service.LinksProcessor, logger *zap.Logger) *Server {
 	return &Server{linkService: linkService, logger: logger}
 }
 
-func (s *Server) GetLink(ctx context.Context, req *gen.GetLinkRequest) (*gen.GetLinkResponse, error) {
+func (s *Server) GetLink(ctx context.Context, req *gen2.GetLinkRequest) (*gen2.GetLinkResponse, error) {
 	url, err := s.linkService.GetUrlByLink(ctx, req.Short)
 	if err != nil {
-		if errors.Is(err, internalErrors.ErrAlreadyExists) {
-			return &gen.GetLinkResponse{}, status.Error(codes.InvalidArgument, internalErrors.ErrAlreadyExists.Error())
+		if errors.Is(err, internalErrors.ErrUrlNotFound) {
+			return &gen2.GetLinkResponse{Url: url}, status.Error(codes.NotFound, internalErrors.ErrUrlNotFound.Error())
 		}
-		return &gen.GetLinkResponse{Url: url}, status.Error(codes.Internal, "failed to get")
+		return &gen2.GetLinkResponse{Url: url}, status.Error(codes.Internal, "failed to get")
 	}
-	return &gen.GetLinkResponse{Url: url}, nil
+	return &gen2.GetLinkResponse{Url: url}, nil
 }
-func (s *Server) SaveLink(ctx context.Context, req *gen.SaveLinkRequest) (*gen.SaveLinkResponse, error) {
+func (s *Server) SaveLink(ctx context.Context, req *gen2.SaveLinkRequest) (*gen2.SaveLinkResponse, error) {
 	link, err := s.linkService.ProcessLink(ctx, req.Url)
 	if err != nil {
-		return &gen.SaveLinkResponse{}, status.Error(codes.Internal, "failed to save")
+		if errors.Is(err, internalErrors.ErrAlreadyExists) {
+			return &gen2.SaveLinkResponse{}, status.Error(codes.AlreadyExists, internalErrors.ErrAlreadyExists.Error())
+		}
+		return &gen2.SaveLinkResponse{}, status.Error(codes.Internal, "failed to save")
 	}
-	return &gen.SaveLinkResponse{Short: link}, nil
+	return &gen2.SaveLinkResponse{Short: link}, nil
 }

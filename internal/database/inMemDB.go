@@ -29,8 +29,10 @@ func (db *InMemDatabase) SaveLink(ctx context.Context, url, link string) error {
 	return nil
 }
 func (db *InMemDatabase) GetURL(ctx context.Context, link string) (string, error) {
+	// optional
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
+
 	url, ok := db.storage[link]
 	if ok {
 		return url, nil
