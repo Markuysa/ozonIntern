@@ -22,6 +22,7 @@ func NewServer(linkService service.LinksProcessor, logger *zap.Logger) *Server {
 }
 
 func (s *Server) GetLink(ctx context.Context, req *gen2.GetLinkRequest) (*gen2.GetLinkResponse, error) {
+	s.logger.Info("get link request received url:", zap.String("shortLink", req.Short))
 	url, err := s.linkService.GetUrlByLink(ctx, req.Short)
 	if err != nil {
 		if errors.Is(err, internalErrors.ErrUrlNotFound) {
@@ -32,6 +33,7 @@ func (s *Server) GetLink(ctx context.Context, req *gen2.GetLinkRequest) (*gen2.G
 	return &gen2.GetLinkResponse{Url: url}, nil
 }
 func (s *Server) SaveLink(ctx context.Context, req *gen2.SaveLinkRequest) (*gen2.SaveLinkResponse, error) {
+	s.logger.Info("save link request received url:", zap.String("url", req.Url))
 	link, err := s.linkService.ProcessLink(ctx, req.Url)
 	if err != nil {
 		if errors.Is(err, internalErrors.ErrAlreadyExists) {
