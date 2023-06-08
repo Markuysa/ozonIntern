@@ -5,6 +5,8 @@ services:
     container_name: "link_service"
     depends_on:
       - postgres
+    ports:
+      - "8080:8080"
   postgres:
     image: postgres:latest
     environment:
